@@ -9,6 +9,9 @@
     "build": "wails build",
     "frontend:install": "npm --prefix frontend install",
     "frontend:build": "npm --prefix frontend run build",
-    "frontend:dev": "npm --prefix frontend run dev"
+    "frontend:dev": "npm --prefix frontend run dev",
+    "test": "go test ./...",
+    "doctor": "wails doctor",
+    "audit": "npm --prefix frontend audit --audit-level=high"
   }
 }

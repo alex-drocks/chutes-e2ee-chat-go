@@ -10,5 +10,12 @@
   "author": {
     "name": "alex-drocks",
     "email": ""
+  },
+  "info": {
+    "companyName": "alex-drocks",
+    "productName": "Chutes E2EE Chat",
+    "productVersion": "0.0.1",
+    "copyright": "Copyright 2026 alex-drocks",
+    "comments": "Wails + Go desktop client for Chutes.ai E2EE chat."
   }
 }

@@ -47,6 +47,18 @@ Build:
 wails build
 ```
 
+## GitHub Automation
+
+This port includes GitHub automation that is broader than the Electron repo's Windows-only release flow.
+
+- CI runs on pull requests and pushes to `main`.
+- CI checks Windows x64, Linux x64, and macOS universal Wails builds.
+- CI installs frontend dependencies with `npm ci`, runs `npm audit --audit-level=high`, checks `go mod tidy`, runs `go test ./...`, runs `wails doctor`, and performs a Wails production smoke build.
+- Releases run on `v*` tags or manual workflow dispatch.
+- Manual releases can bump `patch`, `minor`, or `major`, or publish/rebuild an explicit version.
+- Release builds produce a Windows x64 executable, a macOS universal app zip, a Linux x64 tarball, and a combined `SHA256SUMS.txt`.
+- Dependabot checks frontend npm packages, Go modules, and GitHub Actions weekly.
+
 ## Notes
 
-The local shell used to create this scaffold did not have `go`, `wails`, or `bun` on PATH, so the project could not be compiled in this environment yet. After installing Go/Wails/npm dependencies, run `wails doctor`, `npm --prefix frontend run build`, and `wails build`.
+Release artifacts are unsigned for now. Code signing and notarization can be layered into `.github/workflows/release.yml` once signing certificates and secrets are available.
