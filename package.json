@@ -1,0 +1,14 @@
+{
+  "name": "chutes-e2ee-chat-go",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Wails + Go port of the Chutes E2EE Chat desktop client.",
+  "license": "MIT",
+  "scripts": {
+    "dev": "wails dev",
+    "build": "wails build",
+    "frontend:install": "npm --prefix frontend install",
+    "frontend:build": "npm --prefix frontend run build",
+    "frontend:dev": "npm --prefix frontend run dev"
+  }
+}

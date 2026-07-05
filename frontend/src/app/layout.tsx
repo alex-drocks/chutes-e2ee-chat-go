@@ -1,0 +1,19 @@
+import type { Metadata } from 'next';
+import WailsBootstrap from '@/components/WailsBootstrap';
+import './globals.css';
+
+export const metadata: Metadata = {
+  title: 'Chutes E2EE Chat',
+  description: 'End-to-end encrypted chat via Chutes.ai TEE',
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <WailsBootstrap />
+        {children}
+      </body>
+    </html>
+  );
+}
