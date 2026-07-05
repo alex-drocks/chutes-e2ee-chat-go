@@ -1,6 +1,6 @@
 # Chutes E2EE Chat Go
 
-This is the Wails + Go port of `chutes-e2ee-chat`. The frontend is the existing statically exported Next.js renderer; the Electron main process and preload API are being replaced with Wails bindings backed by Go.
+This is the Wails + Go port of `chutes-e2ee-chat` https://github.com/alex-drocks/chutes-e2ee-chat. The frontend is the existing statically exported Next.js renderer; the Electron main process and preload API are being replaced with Wails bindings backed by Go.
 
 ## Why Wails
 
