@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "postbuild": "node scripts/ensure-dist-placeholder.mjs"
   },
   "dependencies": {
     "@ai-sdk/react": "^4.0.16",

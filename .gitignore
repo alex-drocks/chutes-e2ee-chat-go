@@ -8,7 +8,9 @@
 /frontend/out/
 /frontend/dist/*
 !/frontend/dist/
-!/frontend/dist/index.html
+!/frontend/dist/.gitkeep
+/frontend/package.json.md5
+/.tools/
 
 *.exe
 *.dll
