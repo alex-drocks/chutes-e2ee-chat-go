@@ -19,20 +19,9 @@ env:
   WAILS_VERSION: v2.12.0
 
 jobs:
-  check:
-    name: Check (${{ matrix.platform }})
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-22.04
-            platform: linux/amd64
-          - os: windows-latest
-            platform: windows/amd64
-          - os: macos-latest
-            platform: darwin/universal
+  windows:
+    name: Windows CI Build
+    runs-on: windows-latest
 
     defaults:
       run:
@@ -41,12 +30,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
-
-      - name: Install Linux Wails dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential pkg-config libgtk-3-dev libwebkit2gtk-4.0-dev
 
       - name: Setup Go
         uses: actions/setup-go@v6
@@ -84,8 +67,18 @@ jobs:
       - name: Wails doctor
         run: wails doctor
 
-      - name: Wails production smoke build
-        run: wails build -platform ${{ matrix.platform }} -clean -trimpath -nopackage -o Chutes-E2EE-Chat
+      - name: Build Windows executable
+        run: wails build -platform windows/amd64 -clean -trimpath -o Chutes-E2EE-Chat
 
       - name: Verify generated Wails bindings are committed
         run: git diff --exit-code -- frontend/wailsjs go.mod go.sum
+
+      - name: Package CI executable
+        run: .github/scripts/package-release-artifacts.ps1 -Tag "ci-${{ github.run_number }}" -BinaryName Chutes-E2EE-Chat
+
+      - name: Upload Windows executable
+        uses: actions/upload-artifact@v7
+        with:
+          name: Chutes-E2EE-Chat-windows-${{ github.run_number }}
+          if-no-files-found: error
+          path: release/*.exe

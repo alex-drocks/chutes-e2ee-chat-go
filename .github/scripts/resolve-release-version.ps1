@@ -26,17 +26,40 @@ function Write-OutputValue {
   "$Name=$Value" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 }
 
+function Get-PackageVersion {
+  $packageJson = Get-Content -Raw -LiteralPath package.json | ConvertFrom-Json
+  Assert-SemVer $packageJson.version
+  return $packageJson.version
+}
+
 git fetch --tags --force
 
 $eventName = [string] $env:GITHUB_EVENT_NAME
+$ref = [string] $env:GITHUB_REF
 $createTag = "false"
+$makeLatest = "true"
+$prerelease = "false"
 
-if ($eventName -eq "push") {
+if ($eventName -eq "push" -and $ref -eq "refs/heads/main") {
+  $version = Get-PackageVersion
+  $shortSha = ([string] $env:GITHUB_SHA).Substring(0, 7)
+  $runNumber = [string] $env:GITHUB_RUN_NUMBER
+  if (-not $runNumber) {
+    $runNumber = "local"
+  }
+
+  $tag = "main-$runNumber-$shortSha"
+  $releaseName = "Chutes E2EE Chat main $shortSha"
+  $createTag = "true"
+  $makeLatest = "false"
+  $prerelease = "true"
+} elseif ($eventName -eq "push") {
   $tag = [string] $env:GITHUB_REF_NAME
   if ($tag -notmatch '^v(\d+\.\d+\.\d+)$') {
     throw "Release tags must look like v0.1.0."
   }
   $version = $Matches[1]
+  $releaseName = "Chutes E2EE Chat $tag"
 } else {
   $explicitVersion = ([string] $env:RELEASE_VERSION_INPUT).Trim()
 
@@ -63,10 +86,8 @@ if ($eventName -eq "push") {
     }
 
     if (-not $latest) {
-      $packageJson = Get-Content -Raw -LiteralPath package.json | ConvertFrom-Json
-      if ($packageJson.version -notmatch '^(\d+)\.(\d+)\.(\d+)$') {
-        throw "package.json version must use MAJOR.MINOR.PATCH format."
-      }
+      $packageVersion = Get-PackageVersion
+      $packageVersion -match '^(\d+)\.(\d+)\.(\d+)$' | Out-Null
       $latest = @{
         major = [int] $Matches[1]
         minor = [int] $Matches[2]
@@ -104,8 +125,13 @@ if ($eventName -eq "push") {
     }
     $createTag = "true"
   }
+
+  $releaseName = "Chutes E2EE Chat $tag"
 }
 
 Write-OutputValue "version" $version
 Write-OutputValue "tag" $tag
 Write-OutputValue "create_tag" $createTag
+Write-OutputValue "make_latest" $makeLatest
+Write-OutputValue "prerelease" $prerelease
+Write-OutputValue "release_name" $releaseName

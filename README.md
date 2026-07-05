@@ -49,16 +49,15 @@ wails build
 
 ## GitHub Automation
 
-This port includes GitHub automation that is broader than the Electron repo's Windows-only release flow.
+This port builds and publishes Windows artifacts only.
 
 - CI runs on pull requests and pushes to `main`.
-- CI checks Windows x64, Linux x64, and macOS universal Wails builds.
-- CI installs frontend dependencies with `npm ci`, runs `npm audit --audit-level=high`, checks `go mod tidy`, runs `go test ./...`, runs `wails doctor`, and performs a Wails production smoke build.
-- Releases run on `v*` tags or manual workflow dispatch.
+- CI installs frontend dependencies with `npm ci`, runs `npm audit --audit-level=high`, checks `go mod tidy`, runs `go test ./...`, runs `wails doctor`, builds the Windows executable, and uploads it as a workflow artifact.
+- Every push to `main` also runs the Release workflow and publishes a GitHub prerelease with a unique `main-<run>-<sha>` tag, the Windows x64 executable, and `SHA256SUMS.txt`.
+- Versioned releases still run on `v*` tags or manual workflow dispatch.
 - Manual releases can bump `patch`, `minor`, or `major`, or publish/rebuild an explicit version.
-- Release builds produce a Windows x64 executable, a macOS universal app zip, a Linux x64 tarball, and a combined `SHA256SUMS.txt`.
 - Dependabot checks frontend npm packages, Go modules, and GitHub Actions weekly.
 
 ## Notes
 
-Release artifacts are unsigned for now. Code signing and notarization can be layered into `.github/workflows/release.yml` once signing certificates and secrets are available.
+Release artifacts are unsigned for now. Windows code signing can be layered into `.github/workflows/release.yml` once signing certificates and secrets are available.

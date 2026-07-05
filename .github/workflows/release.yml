@@ -2,6 +2,8 @@ name: Release
 
 on:
   push:
+    branches:
+      - main
     tags:
       - "v*"
   workflow_dispatch:
@@ -39,6 +41,9 @@ jobs:
 
     outputs:
       create_tag: ${{ steps.version.outputs.create_tag }}
+      make_latest: ${{ steps.version.outputs.make_latest }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+      release_name: ${{ steps.version.outputs.release_name }}
       tag: ${{ steps.version.outputs.tag }}
       version: ${{ steps.version.outputs.version }}
 
@@ -60,26 +65,9 @@ jobs:
         run: .github/scripts/resolve-release-version.ps1
 
   build:
-    name: Build ${{ matrix.label }}
+    name: Build Windows Release
     needs: prepare
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - label: Linux x64
-            os: ubuntu-22.04
-            platform: linux/amd64
-            artifact: linux-amd64
-          - label: Windows x64
-            os: windows-latest
-            platform: windows/amd64
-            artifact: windows-amd64
-          - label: macOS universal
-            os: macos-latest
-            platform: darwin/universal
-            artifact: macos-universal
+    runs-on: windows-latest
 
     defaults:
       run:
@@ -94,12 +82,6 @@ jobs:
       - name: Checkout existing release tag
         if: github.event_name == 'workflow_dispatch' && needs.prepare.outputs.create_tag == 'false'
         run: git checkout --force "refs/tags/${{ needs.prepare.outputs.tag }}"
-
-      - name: Install Linux Wails dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential pkg-config libgtk-3-dev libwebkit2gtk-4.0-dev
 
       - name: Setup Go
         uses: actions/setup-go@v6
@@ -132,8 +114,8 @@ jobs:
       - name: Stamp release metadata
         run: node .github/scripts/sync-release-version.mjs "${{ needs.prepare.outputs.version }}"
 
-      - name: Build native application
-        run: wails build -platform ${{ matrix.platform }} -clean -trimpath -o Chutes-E2EE-Chat
+      - name: Build Windows executable
+        run: wails build -platform windows/amd64 -clean -trimpath -o Chutes-E2EE-Chat
 
       - name: Package release artifact
         env:
@@ -143,7 +125,7 @@ jobs:
       - name: Upload release artifact
         uses: actions/upload-artifact@v7
         with:
-          name: release-${{ matrix.artifact }}
+          name: windows-release-${{ needs.prepare.outputs.tag }}
           if-no-files-found: error
           path: release/*
 
@@ -167,7 +149,7 @@ jobs:
       - name: Download release artifacts
         uses: actions/download-artifact@v7
         with:
-          pattern: release-*
+          pattern: windows-release-*
           path: release
           merge-multiple: true
 
@@ -190,15 +172,16 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -a "${{ needs.prepare.outputs.tag }}" -m "Release ${{ needs.prepare.outputs.tag }}"
-          git push origin "${{ needs.prepare.outputs.tag }}"
+          git tag -a "${{ needs.prepare.outputs.tag }}" -m "${{ needs.prepare.outputs.release_name }}"
+          git push origin "refs/tags/${{ needs.prepare.outputs.tag }}"
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v3.0.1
         with:
           tag_name: ${{ needs.prepare.outputs.tag }}
-          name: Chutes E2EE Chat ${{ needs.prepare.outputs.tag }}
+          name: ${{ needs.prepare.outputs.release_name }}
           generate_release_notes: true
           fail_on_unmatched_files: true
-          make_latest: true
+          make_latest: ${{ needs.prepare.outputs.make_latest }}
+          prerelease: ${{ needs.prepare.outputs.prerelease }}
           files: release/*
